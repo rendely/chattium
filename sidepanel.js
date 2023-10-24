@@ -56,7 +56,7 @@ async function runScript(scriptString) {
           func: () => {
             const a = document.querySelectorAll('main  a');
             const urls = Array.from(a).map(h => h.href).filter(u => !u.match('brave.com'));
-            chrome.runtime.sendMessage({action: "open_tabs", urls: urls.slice(0,10)});
+            chrome.runtime.sendMessage({action: "open_tabs", urls: urls.slice(0,5)});
             // urls.slice(0,10).map(a => window.open(a.href,"_blank"));
           }
       });
@@ -106,8 +106,11 @@ async function getResponse(prompt){
     "Group tabs about travel"
     Output: 
     [{"functionName": "tabGroup", "tabIdArray":[2,3], "groupName": "🏖Travel"}]
-
-    Only use getResponse a maximum of two times if a user is trying to do more than one function
+    
+    Rules:
+    The first function cannot be getResponse
+    You must use getResponse if you want to execute a function that needs tabIdArray data after other functions are called
+    Use getResponse only once
     `
 
     const userPrompt = `Here is the data about tabs:
@@ -178,8 +181,8 @@ function handleResponse(input){
       }
       if (d.functionName === 'getResponse'){
         
-        setTimeout(() => {
-          console.log('prompting'); 
+        window.setTimeout(() => {
+          console.log('prompting delay'); 
           getResponse(d.prompt)}, [1000])
       }
     t.hidden=true;
