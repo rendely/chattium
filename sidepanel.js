@@ -18,7 +18,10 @@ async function getTabData(){
     const tabs = await chrome.tabs.query({});
     const tabData = tabs.map(t => {
         // d.innerHTML += t.url+'</br>';
-        return {id:t.id, title:t.title, url:t.url.slice(0,t.url.indexOf('?'))}
+        return {id:t.id, 
+          title:t.title
+          // , url:t.url.slice(0,t.url.indexOf('?'))
+        }
     });
     return tabData;
 }
@@ -79,47 +82,59 @@ async function getResponse(prompt){
     const tabData = await getTabData();  
     console.log(prompt, tabData);
 
-    const systemPrompt = `Your task is to respond with a JSON object that has an array. Each array element has a function name and inputs. Only respond with the JSON object and no other chat before or after. 
-    Your function options include:
-    Close:
-    tabClose(tabIdArray)
-    Group:
-    tabGroup(tabIdArray, groupName)
-    Create:
-    tabCreate(url)
-    Move/reorder:
-    tabMove(tabId, index)
-    Search/Open/Find/Teach me/Learn:
-    search(keywords)
-    
+    const systemPrompt = `Your task is to respond with a JSON object that has an array. Each array element has a function name and inputs. 
+Only respond with the JSON object and no other chat before or after. 
+TabId is not an index it's a random id.
 
-    Example:
-    User input:
-    "Open tabs about tech from reddit and group them"
-    Output:
-    [{"functionName": "search", "keywords":"tech technology reddit"}]
+Your function options include:
 
-    Example:
-    User input: 
-    "Group tabs about travel"
-    Output: 
-    [{"functionName": "tabGroup", "tabIdArray":[2,3], "groupName": "🏖Travel"}]
-    `
+//Close:
+tabClose(tabIdArray)
+
+//Group:
+tabGroup(tabIdArray, groupName)
+
+//Create:
+tabCreate(url)
+
+//Move/reorder:
+tabMove(tabId, index)
+
+//Search/Open/Find/Teach me/Learn:
+search(keywords)
+
+
+Data about tabs:
+[{"id":1127903306,"title":"Extensions","url":"chrome://extensions"},{"id":1127903375,"title":"Airbnb | Hawaii","url":"https://www.airbnb.com/s/hawaii/homes"},{"id":1127903378,"title":"travel Canada - Brave Search","url":"https://search.brave.com/search"}]
+
+Example 1:
+User input:
+"Open tabs about tech from reddit"
+Output:
+[{"functionName": "search", "keywords":"tech technology reddit"}]
+
+Example 2:
+User input: 
+"Group tabs about hawaii"
+Output: 
+[{"functionName": "tabGroup", "tabIdArray":[1127903375], "groupName": "🏖Hawaii"}]
+`
 
     const userPrompt = `Here is the data about tabs:
 
-    ${JSON.stringify(tabData)}
+${JSON.stringify(tabData)}
 
-    The user has asked: "${prompt}"
+The user has asked: "${prompt}"
 
-    Please respond with your action function call:
+Please respond with your action function call:
     `
 
+    console.log(systemPrompt);
     console.log(userPrompt);
 
     const url = "https://api.openai.com/v1/chat/completions";
     const data = {
-      "model": 'gpt-4',
+      "model": 'gpt-3.5-turbo',
       "messages":  [
         {
           "role": "system",
