@@ -10,8 +10,8 @@ async function handleSubmit(e){
     e.preventDefault();
     t.hidden=false;
     const prompt = p.value;
-    const tabData = await getTabData();
-    getResponse(prompt, tabData);    
+    
+    getResponse(prompt);    
 }
 
 async function getTabData(){
@@ -74,7 +74,9 @@ chrome.runtime.onMessage.addListener(
   }
 );
 
-function getResponse(prompt, tabData){
+async function getResponse(prompt){
+    t.hidden=false;
+    const tabData = await getTabData();  
     console.log(prompt, tabData);
 
     const systemPrompt = `Your task is to respond with a JSON object that has an array. Each array element has a function name and inputs. Only respond with the JSON object and no other chat before or after. 
@@ -89,24 +91,23 @@ function getResponse(prompt, tabData){
     tabMove(tabId, index)
     Search/Open/Find:
     search(keywords)
+    Run another command via prompt:
+    getResponse(prompt)
     
-    Example:
-    User input: 
-    "Close all tabs about travel"
-    Output: 
-    [{"functionName": "tabClose", "tabIdArray":[2,3]}]
-
+   
     Example:
     User input:
-    "Open tabs about tech from reddit"
+    "Open tabs about tech from reddit and group them"
     Output:
-    [{"functionName": "search", "keywords":"tech technology reddit"}]
+    [{"functionName": "search", "keywords":"tech technology reddit"}, {"functionName": "getResponse","prompt":"Group tabs about tech from reddit"}]
 
     Example:
     User input: 
     "Group tabs about travel"
     Output: 
     [{"functionName": "tabGroup", "tabIdArray":[2,3], "groupName": "🏖Travel"}]
+
+    Only use getResponse a maximum of two times if a user is trying to do more than one function
     `
 
     const userPrompt = `Here is the data about tabs:
@@ -174,6 +175,12 @@ function handleResponse(input){
       if (d.functionName === 'search'){
         console.log('searching');
         search(d.keywords);
+      }
+      if (d.functionName === 'getResponse'){
+        
+        setTimeout(() => {
+          console.log('prompting'); 
+          getResponse(d.prompt)}, [1000])
       }
     t.hidden=true;
     p.innerText = '';
