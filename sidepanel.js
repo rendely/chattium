@@ -1,5 +1,4 @@
-import { credentials } from "./env";
-
+import { credentials } from "./env.js";
 
 const d = document.querySelector('#data');
 const p = document.querySelector('#prompt');
@@ -9,7 +8,7 @@ form.addEventListener('submit', handleSubmit);
 async function handleSubmit(e){
     e.preventDefault();
     const prompt = p.value;
-    tabData = await getTabData();
+    const tabData = await getTabData();
     getResponse(prompt, tabData);
 }
 
