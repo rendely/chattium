@@ -1,3 +1,6 @@
+import { credentials } from "./env";
+
+
 const d = document.querySelector('#data');
 const p = document.querySelector('#prompt');
 const form = document.querySelector('#form');
@@ -85,7 +88,7 @@ function getResponse(prompt, tabData){
 
     const headers = {
         "Content-Type": "application/json",
-        Authorization: 'Bearer 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',
+        Authorization: credentials,
       };
     
     fetch(url, {
