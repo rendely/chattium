@@ -1,18 +1,20 @@
-Your task is to respond with a single function call in the exact format specified below. Only respond with the action and no other chat before or after. 
-Your options include:
+Your task is to respond with a JSON object that has an array. Each array element has a function name and inputs. Only respond with the JSON object and no other chat before or after. 
+Your function options include:
 Close:
 tabClose(tabIdArray)
 Group:
 tabGroup(tabIdArray, groupName)
 
 Example:
-User input: "Close all tabs about travel"
-Output: "tabClose([2,4])
+User input: 
+"Close all tabs about travel"
+Output: 
+[{"functionName": "tabClose", "tabIdArray":[2,3]}]
 
 Here is the data about tabs:
 
-[{"id":1127900140,"title":"Extensions","url":"chrome://extensions/"},{"id":1127900146,"title":"chrome-extensions-samples/functional-samples/tutorial.tabs-manager/manifest.json at main · GoogleChrome/chrome-extensions-samples · GitHub","url":"https://github.com/GoogleChrome/chrome-extensions-samples/blob/main/functional-samples/tutorial.tabs-manager/manifest.json"},{"id":1127900153,"title":"chrome.tabs - Chrome for Developers","url":"https://developer.chrome.com/docs/extensions/reference/tabs/#method-query"},{"id":1127900154,"title":"Migrate to a service worker - Chrome for Developers","url":"https://developer.chrome.com/docs/extensions/migrating/to-service-workers/"},{"id":1127900183,"title":"Document: querySelector() method - Web APIs | MDN","url":"https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector"}]
+[{"id":1127900140,"title":"Extensions","url":"chrome://extensions/"},{"id":1127900146,"title":"chrome-extensions-samples/functional-samples/tutorial.tabs-manager/manifest.json at main · GoogleChrome/chrome-extensions-samples · GitHub","url":"https://github.com/GoogleChrome/chrome-extensions-samples/blob/main/functional-samples/tutorial.tabs-manager/manifest.json"},{"id":1127900153,"title":"chrome.tabGroups - Chrome for Developers","url":"https://developer.chrome.com/docs/extensions/reference/tabGroups/#method-update"},{"id":1127900154,"title":"Migrate to a service worker - Chrome for Developers","url":"https://developer.chrome.com/docs/extensions/migrating/to-service-workers/"},{"id":1127900183,"title":"Document: querySelector() method - Web APIs | MDN","url":"https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector"},{"id":1127900198,"title":"New Tab","url":"chrome://newtab/"},{"id":1127900200,"title":"Google Flights - Find Cheap Flight Options & Track Prices","url":"https://www.google.com/travel/flights?tfs=CBwQARooEgoyMDIzLTExLTIwagwIAhIIL20vMGQ5anJyDAgDEggvbS8wamJzNRooEgoyMDIzLTExLTI0agwIAxIIL20vMGpiczVyDAgCEggvbS8wZDlqckABSAFwAYIBCwj___________8BmAEB&tfu=KgIIAw"},{"id":1127900201,"title":"Tourism reopens in West Maui as wildfire relief efforts continue - The Washington Post","url":"https://www.washingtonpost.com/travel/2023/10/23/maui-tourism-reopening-wildfire/"},{"id":1127900202,"title":"Reddit - Dive into anything","url":"https://www.reddit.com/"},{"id":1127900203,"title":"Techmeme","url":"https://techmeme.com/"},{"id":1127900204,"title":"Hacker News","url":"https://news.ycombinator.com/"},{"id":1127900205,"title":"snorkeling - Google Search","url":"https://www.google.com/search?q=snorkeling+&sca_esv=575974643&ei=RiQ3ZYCoJ_Kp0PEP_PC00AQ&ved=0ahUKEwiA45uqyo2CAxXyFDQIHXw4DUoQ4dUDCBA&uact=5&oq=snorkeling+&gs_lp=Egxnd3Mtd2l6LXNlcnAiC3Nub3JrZWxpbmcgMgcQABiKBRhDMgsQABiABBixAxiDATIFEAAYgAQyBxAAGIoFGEMyCxAAGIAEGLEDGMkDMggQABiABBiSAzIIEAAYgAQYkgMyBBAAGAMyBxAAGIoFGEMyBRAAGIAESJADUNEBWNEBcAF4AZABAJgBM6ABM6oBATG4AQPIAQD4AQHCAgoQABhHGNYEGLADwgIKEAAYigUYsAMYQ8ICDhAAGOQCGNYEGLAD2AEBwgIWEC4YigUYxwEYrwEYyAMYsAMYQ9gBAsICEBAuGIoFGMgDGLADGEPYAQLiAwQYACBBiAYBkAYTugYGCAEQARgJugYGCAIQARgI&sclient=gws-wiz-serp"}]
 
-The user has asked: "Please create a group for extensions"
+The user has asked: "Please create a group for my vacation"
 
 Please respond with your action function call:

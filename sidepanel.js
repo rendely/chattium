@@ -19,28 +19,42 @@ async function getTabData(){
     return tabData;
 }
 
-
-
-
 async function tabGroup(tabIdArray, groupName){
     const g = await chrome.tabs.group({tabIds: tabIdArray});
     chrome.tabGroups.update(g,{title: groupName});
 }
 
+async function tabClose(tabIdArray){
+  chrome.tabs.remove(tabIdArray);
+}
+
+async function tabCreate(url){
+  chrome.tabs.create({url:url});
+}
 
 function getResponse(prompt, tabData){
     console.log(prompt, tabData);
 
-    const systemPrompt = `Your task is to respond with a single function call in the exact format specified below. Only respond with the action and no other chat before or after. 
-    Your options include:
+    const systemPrompt = `Your task is to respond with a JSON object that has an array. Each array element has a function name and inputs. Only respond with the JSON object and no other chat before or after. 
+    Your function options include:
     Close:
     tabClose(tabIdArray)
     Group:
     tabGroup(tabIdArray, groupName)
+    Create:
+    tabCreate(url)
+    
+    Example:
+    User input: 
+    "Close all tabs about travel"
+    Output: 
+    [{"functionName": "tabClose", "tabIdArray":[2,3]}]
 
     Example:
-    User input: "Close all tabs about travel"
-    Output: "tabClose([2,4])
+    User input: 
+    "Group tabs about travel"
+    Output: 
+    [{"functionName": "tabGroup", "tabIdArray":[2,3], "groupName": "🏖Travel"}]
     `
 
     const userPrompt = `Here is the data about tabs:
@@ -56,7 +70,7 @@ function getResponse(prompt, tabData){
 
     const url = "https://api.openai.com/v1/chat/completions";
     const data = {
-      "model": 'gpt-4',
+      "model": 'gpt-3.5-turbo',
       "messages":  [
         {
           "role": "system",
@@ -86,12 +100,29 @@ function getResponse(prompt, tabData){
 
 function handleResponse(input){
     console.log(input);
-    if (input.match('tabGroup')){
-        const tabIds = JSON.parse(input.match(/\[[^\]]+\]/));
-        const title = input.match(/"([^"]+)"/)[1];
-        console.log(tabIds, title);
-        tabGroup(tabIds, title);
-    }
+    const data = JSON.parse(input);
+    console.log(data);
+    data.map(d => {
+      if (d.functionName === 'tabGroup'){
+        console.log('grouping');
+        tabGroup(d.tabIdArray, d.groupName)
+      }
+      if (d.functionName === 'tabClose'){
+        console.log('closing');
+        tabClose(d.tabIdArray);
+      }
+      if (d.functionName === 'tabCreate'){
+        console.log('opening');
+        tabCreate(d.url);
+      }
+    });
+    // console.log(input);
+    // if (input.match('tabGroup')){
+    //     const tabIds = JSON.parse(input.match(/\[[^\]]+\]/));
+    //     const title = input.match(/"([^"]+)"/)[1];
+    //     console.log(tabIds, title);
+    //     tabGroup(tabIds, title);
+    // }
 }
 
 // getResponse(userPrompt);
