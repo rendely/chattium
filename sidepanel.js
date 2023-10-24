@@ -54,9 +54,9 @@ async function runScript(scriptString) {
         {
           target: { tabId: activeTab.id },
           func: () => {
-            const a = document.querySelectorAll('main  a');
+            const a = document.querySelectorAll('div[data-type="web"] > a')
             const urls = Array.from(a).map(h => h.href).filter(u => !u.match('brave.com'));
-            chrome.runtime.sendMessage({action: "open_tabs", urls: urls.slice(0,5)});
+            chrome.runtime.sendMessage({action: "open_tabs", urls: urls.slice(0,8)});
             // urls.slice(0,10).map(a => window.open(a.href,"_blank"));
           }
       });
@@ -89,12 +89,12 @@ async function getResponse(prompt){
     tabCreate(url)
     Move/reorder:
     tabMove(tabId, index)
-    Search/Open/Find:
+    Search/Open/Find/Teach me/Learn:
     search(keywords)
-    Run another command via prompt:
+    Run a follow up command via prompt:
     getResponse(prompt)
     
-   
+
     Example:
     User input:
     "Open tabs about tech from reddit and group them"
@@ -108,9 +108,9 @@ async function getResponse(prompt){
     [{"functionName": "tabGroup", "tabIdArray":[2,3], "groupName": "🏖Travel"}]
     
     Rules:
-    The first function cannot be getResponse
+
+    The first functionName in the output array cannot be getResponse
     You must use getResponse if you want to execute a function that needs tabIdArray data after other functions are called
-    Use getResponse only once
     `
 
     const userPrompt = `Here is the data about tabs:
@@ -156,6 +156,7 @@ async function getResponse(prompt){
 
 function handleResponse(input){
     console.log(input);
+    d.innerHTML += '<p>'+input+'</p>';
     const data = JSON.parse(input);
     console.log(data);
     data.map(d => {
