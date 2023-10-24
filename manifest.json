@@ -1,0 +1,17 @@
+{
+    "manifest_version": 3,
+    "name": "Chattium",
+    "version": "1.0",
+    "description": "Chat with Chrome",
+    "side_panel": {
+      "default_path": "sidepanel.html"
+    },
+    "permissions": ["sidePanel", "tabGroups", "tabs"],
+    "action": {
+        "default_title": "Click to open panel"
+      },
+    "background":{
+        "service_worker": "service_worker.js",
+        "type": "module"
+    }
+  }

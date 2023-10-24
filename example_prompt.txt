@@ -1,0 +1,18 @@
+Your task is to respond with a single function call in the exact format specified below. Only respond with the action and no other chat before or after. 
+Your options include:
+Close:
+tabClose(tabIdArray)
+Group:
+tabGroup(tabIdArray, groupName)
+
+Example:
+User input: "Close all tabs about travel"
+Output: "tabClose([2,4])
+
+Here is the data about tabs:
+
+[{"id":1127900140,"title":"Extensions","url":"chrome://extensions/"},{"id":1127900146,"title":"chrome-extensions-samples/functional-samples/tutorial.tabs-manager/manifest.json at main · GoogleChrome/chrome-extensions-samples · GitHub","url":"https://github.com/GoogleChrome/chrome-extensions-samples/blob/main/functional-samples/tutorial.tabs-manager/manifest.json"},{"id":1127900153,"title":"chrome.tabs - Chrome for Developers","url":"https://developer.chrome.com/docs/extensions/reference/tabs/#method-query"},{"id":1127900154,"title":"Migrate to a service worker - Chrome for Developers","url":"https://developer.chrome.com/docs/extensions/migrating/to-service-workers/"},{"id":1127900183,"title":"Document: querySelector() method - Web APIs | MDN","url":"https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector"}]
+
+The user has asked: "Please create a group for extensions"
+
+Please respond with your action function call:
