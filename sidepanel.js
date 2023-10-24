@@ -25,7 +25,7 @@ async function getTabData(){
 
 async function tabGroup(tabIdArray, groupName){
     const g = await chrome.tabs.group({tabIds: tabIdArray});
-    chrome.tabGroups.update(g,{title: groupName});
+    chrome.tabGroups.update(g,{title: groupName, collapsed: true});
 }
 
 async function tabClose(tabIdArray){
