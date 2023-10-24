@@ -72,7 +72,7 @@ function getResponse(prompt, tabData){
 
     const url = "https://api.openai.com/v1/chat/completions";
     const data = {
-      "model": 'gpt-3.5-turbo',
+      "model": 'gpt-4',
       "messages":  [
         {
           "role": "system",
