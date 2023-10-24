@@ -3,20 +3,22 @@ import { credentials } from "./env.js";
 const d = document.querySelector('#data');
 const p = document.querySelector('#prompt');
 const form = document.querySelector('#form');
+const t = document.querySelector('#thinking');
 form.addEventListener('submit', handleSubmit);
 
 async function handleSubmit(e){
     e.preventDefault();
+    t.hidden=false;
     const prompt = p.value;
     const tabData = await getTabData();
-    getResponse(prompt, tabData);
+    getResponse(prompt, tabData);    
 }
 
 async function getTabData(){
     const tabs = await chrome.tabs.query({});
     const tabData = tabs.map(t => {
         // d.innerHTML += t.url+'</br>';
-        return {id:t.id, title:t.title, url:t.url}
+        return {id:t.id, title:t.title, url:t.url.slice(0,t.url.indexOf('?'))}
     });
     return tabData;
 }
@@ -34,6 +36,11 @@ async function tabCreate(url){
   chrome.tabs.create({url:url});
 }
 
+async function tabMove(tabId, index){
+  chrome.tabs.move(tabId, {index: index});
+}
+
+
 function getResponse(prompt, tabData){
     console.log(prompt, tabData);
 
@@ -45,6 +52,8 @@ function getResponse(prompt, tabData){
     tabGroup(tabIdArray, groupName)
     Create:
     tabCreate(url)
+    Move/reorder:
+    tabMove(tabId, index)
     
     Example:
     User input: 
@@ -117,6 +126,12 @@ function handleResponse(input){
         console.log('opening');
         tabCreate(d.url);
       }
+      if (d.functionName === 'tabMove'){
+        console.log('moving');
+        tabMove(d.tabId, d.index);
+      }
+    t.hidden=true;
+    p.innerText = '';
     });
     // console.log(input);
     // if (input.match('tabGroup')){
