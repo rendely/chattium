@@ -36,10 +36,43 @@ async function tabCreate(url){
   chrome.tabs.create({url:url});
 }
 
+async function search(keywords){
+  tabCreate(`https://search.brave.com/search?q=${encodeURIComponent(keywords)}`);
+  runScript();
+}
+
 async function tabMove(tabId, index){
   chrome.tabs.move(tabId, {index: index});
 }
 
+async function runScript(scriptString) {
+
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    var activeTab = tabs[0];
+    if (activeTab) {
+      chrome.scripting.executeScript(
+        {
+          target: { tabId: activeTab.id },
+          func: () => {
+            const a = document.querySelectorAll('main  a');
+            const urls = Array.from(a).map(h => h.href).filter(u => !u.match('brave.com'));
+            chrome.runtime.sendMessage({greeting: "hello"});
+            urls.slice(0,10).map(a => window.open(a.href,"_blank"));
+          }
+      });
+    }
+  });
+}
+
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+    console.log(sender.tab ?
+                "from a content script:" + sender.tab.url :
+                "from the extension");
+    if (request.greeting === "hello")
+      console.log('bye');
+  }
+);
 
 function getResponse(prompt, tabData){
     console.log(prompt, tabData);
@@ -54,12 +87,20 @@ function getResponse(prompt, tabData){
     tabCreate(url)
     Move/reorder:
     tabMove(tabId, index)
+    Search/Open/Find:
+    search(keywords)
     
     Example:
     User input: 
     "Close all tabs about travel"
     Output: 
     [{"functionName": "tabClose", "tabIdArray":[2,3]}]
+
+    Example:
+    User input:
+    "Open tabs about tech from reddit"
+    Output:
+    [{"functionName": "search", "keywords":"tech technology reddit"}]
 
     Example:
     User input: 
@@ -130,16 +171,12 @@ function handleResponse(input){
         console.log('moving');
         tabMove(d.tabId, d.index);
       }
+      if (d.functionName === 'search'){
+        console.log('searching');
+        search(d.keywords);
+      }
     t.hidden=true;
     p.innerText = '';
     });
-    // console.log(input);
-    // if (input.match('tabGroup')){
-    //     const tabIds = JSON.parse(input.match(/\[[^\]]+\]/));
-    //     const title = input.match(/"([^"]+)"/)[1];
-    //     console.log(tabIds, title);
-    //     tabGroup(tabIds, title);
-    // }
 }
 
-// getResponse(userPrompt);

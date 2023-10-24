@@ -6,12 +6,13 @@
     "side_panel": {
       "default_path": "sidepanel.html"
     },
-    "permissions": ["sidePanel", "tabGroups", "tabs"],
+    "permissions": [ "sidePanel", "tabGroups", "tabs", "scripting"],
     "action": {
         "default_title": "Click to open panel"
       },
     "background":{
         "service_worker": "service_worker.js",
         "type": "module"
-    }
+    },
+    "host_permissions": [ "*://*/*"]
   }
