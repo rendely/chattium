@@ -56,8 +56,8 @@ async function runScript(scriptString) {
           func: () => {
             const a = document.querySelectorAll('main  a');
             const urls = Array.from(a).map(h => h.href).filter(u => !u.match('brave.com'));
-            chrome.runtime.sendMessage({greeting: "hello"});
-            urls.slice(0,10).map(a => window.open(a.href,"_blank"));
+            chrome.runtime.sendMessage({action: "open_tabs", urls: urls.slice(0,10)});
+            // urls.slice(0,10).map(a => window.open(a.href,"_blank"));
           }
       });
     }
@@ -65,12 +65,12 @@ async function runScript(scriptString) {
 }
 
 chrome.runtime.onMessage.addListener(
-  function(request, sender, sendResponse) {
+  function(request, sender) {
     console.log(sender.tab ?
                 "from a content script:" + sender.tab.url :
                 "from the extension");
-    if (request.greeting === "hello")
-      console.log('bye');
+    if (request.action === "open_tabs")
+      request.urls.map(url => tabCreate(url))
   }
 );
 
