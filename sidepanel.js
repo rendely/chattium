@@ -91,26 +91,19 @@ async function getResponse(prompt){
     tabMove(tabId, index)
     Search/Open/Find/Teach me/Learn:
     search(keywords)
-    Run a follow up command via prompt:
-    getResponse(prompt)
     
 
     Example:
     User input:
     "Open tabs about tech from reddit and group them"
     Output:
-    [{"functionName": "search", "keywords":"tech technology reddit"}, {"functionName": "getResponse","prompt":"Group tabs about tech from reddit"}]
+    [{"functionName": "search", "keywords":"tech technology reddit"}]
 
     Example:
     User input: 
     "Group tabs about travel"
     Output: 
     [{"functionName": "tabGroup", "tabIdArray":[2,3], "groupName": "🏖Travel"}]
-    
-    Rules:
-
-    The first functionName in the output array cannot be getResponse
-    You must use getResponse if you want to execute a function that needs tabIdArray data after other functions are called
     `
 
     const userPrompt = `Here is the data about tabs:
