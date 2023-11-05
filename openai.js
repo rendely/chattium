@@ -7,6 +7,10 @@ const t = document.querySelector('#thinking');
 export async function newMessage(prompt){
     const tabData = await cf.getTabData();
     const userResponse = `Here is the data about tabs:\n${JSON.stringify(tabData)}\
+                          The user lives in Seattle and travels with their partner.
+                          The user's next vacation is Dec 22 to Jan 1
+                          The user is interested in AI, dogs, sci-fi.
+                          The user is dairy free and egg free.
                           The user has asked: "${prompt}"`
     return [
     {"role": "system", "content": "Respond with a message or function call. Multiple function calls in a row allowed"},
@@ -27,8 +31,14 @@ export async function getResponse(messages) {
                 properties: {
                     keywords: {
                         type: "string",
-                        description: "Keywords to use in the search",
+                        description: "Keywords to use in the search. Feel free to re-write based on what you know about the users preferences",
                     },
+                    type: {
+                        type: "string",
+                        enum: ["general", "places", "hotels"],
+                        description: "Use places type for local places searches like restaurants, attractions, etc. Use hotels for airbnb, hotel, place to stay."
+
+                    }
                 },
                 required: ["keywords"],
             },
@@ -75,7 +85,7 @@ export async function getResponse(messages) {
 
     const url = "https://api.openai.com/v1/chat/completions";
     const data = {
-        "model": 'gpt-4',
+        "model": 'gpt-3.5-turbo',
         "messages": messages,
         functions: functions,
         function_call: 'auto'
@@ -105,7 +115,6 @@ export async function handleResponse(input, messages) {
     if (assistant_message.content){
         messages.push({"role": "assistant", 
         "content": assistant_message.content});
-        return;
     }
 
     const data = assistant_message.function_call;
@@ -141,7 +150,7 @@ export async function handleResponse(input, messages) {
         const createdTabs = await cf.search(functionArgs);
         
         messages.push({"role": "function", 
-            "content": `Successfully searched. Additional tabs: ${JSON.stringify(createdTabs)}`, 
+            "content": `Successfully searched. Please group the additional tabs: ${JSON.stringify(createdTabs)}`, 
             "name": assistant_message["function_call"]["name"]})
         getResponse(messages)
     }
