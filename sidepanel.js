@@ -1,5 +1,6 @@
 
 import * as openai from  "./openai.js";
+import { newMessage } from "./openai.js";
 
 const p = document.querySelector('#prompt');
 const form = document.querySelector('#form');
@@ -10,5 +11,5 @@ async function handleSubmit(e){
     e.preventDefault();
     t.hidden=false;
     const prompt = p.value;    
-    openai.getResponse(prompt);    
+    openai.getResponse(await newMessage(prompt));    
 }

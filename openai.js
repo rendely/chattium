@@ -4,12 +4,20 @@ import * as cf from "./chromeFunctions.js";
 const p = document.querySelector('#prompt');
 const t = document.querySelector('#thinking');
 
-export async function getResponse(prompt) {
-    t.hidden = false;
+export async function newMessage(prompt){
     const tabData = await cf.getTabData();
-    console.log(prompt, tabData);
+    const userResponse = `Here is the data about tabs:\n${JSON.stringify(tabData)}\
+                          The user has asked: "${prompt}"`
+    return [
+    {"role": "system", "content": "Respond with a message or function call. Multiple function calls in a row allowed"},
+    {"role": "user", "content": userResponse},
+    ]
+}
 
-    const systemPrompt = `Only respond with a function call that meets the user request. Multiple function calls in a row allowed`
+export async function getResponse(messages) {
+    t.hidden = false;   
+    console.log(messages);
+
     const functions = [
         {
             name: "search",
@@ -46,31 +54,29 @@ export async function getResponse(prompt) {
                 required: ["tabIdArray", "groupName"],
             },
         },
+        {
+            name: "tabClose",
+            description: "Closes tabs",
+            parameters: {
+                type: "object",
+                properties: {
+                    tabIdArray: {
+                        type: "array",
+                        description: "Array of tab id integers",
+                        items: {
+                            type: "integer"
+                        }
+                    },                    
+                },
+                required: ["tabIdArray"],
+            },
+        },
     ];
-    
-    const userPrompt = `Here is the data about tabs:
-
-${JSON.stringify(tabData)}
-
-The user has asked: "${prompt}"
-`
-
-    console.log(systemPrompt);
-    console.log(userPrompt);
 
     const url = "https://api.openai.com/v1/chat/completions";
     const data = {
-        "model": 'gpt-3.5-turbo',
-        "messages": [
-            {
-                "role": "system",
-                "content": systemPrompt
-            },
-            {
-                "role": "user",
-                "content": userPrompt
-            }
-        ],
+        "model": 'gpt-4',
+        "messages": messages,
         functions: functions,
         function_call: 'auto'
     }
@@ -86,24 +92,41 @@ The user has asked: "${prompt}"
         body: JSON.stringify(data)
     })
         .then(r => r.json())
-        .then(d => handleResponse(d))
+        .then(d => handleResponse(d, messages))
 }
 
-export function handleResponse(input) {
-    console.log(input);
-    const data = input.choices[0].message.function_call;
-    console.log(data);
+export async function handleResponse(input, messages) {
+    const assistant_message =input["choices"][0]["message"];
+    messages.push(assistant_message);
+
     const d = document.querySelector('#data');
-    d.innerHTML += '<p>' + JSON.stringify(data) + '</p>';
+    d.innerHTML = [...messages].map(m => '<p>' + JSON.stringify(m) + '</p>').join('');
+
+    if (assistant_message.content){
+        messages.push({"role": "assistant", 
+        "content": assistant_message.content});
+        return;
+    }
+
+    const data = assistant_message.function_call;
     const functionName = data.name;
     const functionArgs = JSON.parse(data.arguments);
+
     if (functionName === 'tabGroup') {
         console.log('grouping');
-        cf.tabGroup(functionArgs)
+        cf.tabGroup(functionArgs);
+        messages.push({"role": "function", 
+            "content": `Successfully created ${functionArgs.groupName} tab group. No more action needed.`, 
+            "name": assistant_message["function_call"]["name"]})
+        getResponse(messages);
     }
     if (functionName === 'tabClose') {
         console.log('closing');
-        cf.tabClose(data.tabIdArray);
+        cf.tabClose(functionArgs);
+        messages.push({"role": "function", 
+            "content": `Successfully closed tabs. No more action needed.`, 
+            "name": assistant_message["function_call"]["name"]})
+        getResponse(messages);
     }
     if (functionName === 'tabCreate') {
         console.log('opening');
@@ -115,14 +138,12 @@ export function handleResponse(input) {
     }
     if (functionName === 'search') {
         console.log('searching');
-        cf.search(functionArgs);
-    }
-    if (functionName === 'getResponse') {
-
-        window.setTimeout(() => {
-            console.log('prompting delay');
-            getResponse(data.prompt)
-        }, [1000])
+        const createdTabs = await cf.search(functionArgs);
+        
+        messages.push({"role": "function", 
+            "content": `Successfully searched. Additional tabs: ${JSON.stringify(createdTabs)}`, 
+            "name": assistant_message["function_call"]["name"]})
+        getResponse(messages)
     }
     t.hidden = true;
     p.innerText = '';
