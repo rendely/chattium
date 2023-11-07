@@ -9,22 +9,23 @@ export async function newMessage(prompt){
     const tabGroupData = await cf.getExistingGroups();
     console.table(tabData);
     console.table(tabGroupData);
-    const userResponse = `Here is the data about tabs:\n${JSON.stringify(tabData)}
-                          Here is the data about existing tab groups:\n${JSON.stringify(tabGroupData)}
-                          Here is data about the user:
-                          - The user lives in Seattle and travels with their partner.
-                          - The user's next vacation is Dec 22 to Jan 1
-                          - The user is interested in AI, dogs, sci-fi, snorkeling.
-                          - The user has dietary requirements: dairy free and egg free.
-                          - The user has recently looked at hiking: 
-                          1. Rattlesnake Ledge (Snoqualmie Pass)
-                          Start: I-90 Exit 32 (map)
-                          Difficulty: Easy
-                          Length: 4 miles roundtrip
-                          https://www.google.com/maps/dir//47.4335,-121.7675/@47.4295313,-121.8061256,12z/data=!4m4!4m3!1m0!1m1!4e1?hl=en
+    const userResponse = `
+Here is the data about tabs:\n${JSON.stringify(tabData)}
+Here is the data about existing tab groups:\n${JSON.stringify(tabGroupData)}
+Here is data about the user:
+- The user lives in Seattle and travels with their partner.
+- The user's next vacation is Dec 22 to Jan 1
+- The user is interested in AI, dogs, sci-fi, snorkeling.
+- The user has dietary requirements: dairy free and egg free.
+- The user has recently looked at hiking: 
+1. Rattlesnake Ledge (Snoqualmie Pass)
+Start: I-90 Exit 32 (map)
+Difficulty: Easy
+Length: 4 miles roundtrip
+https://www.google.com/maps/dir//47.4335,-121.7675/@47.4295313,-121.8061256,12z/data=!4m4!4m3!1m0!1m1!4e1?hl=en
 
-                          Do not ask for follow up, just call functions and respond when done to summarize actions taken.
-                          The user has asked: "${prompt}"`
+Do not ask for follow up, just call functions and respond when done to summarize actions taken.
+The user has asked: "${prompt}"`
     return [
     {"role": "system", "content": "Respond with a message or function call. Multiple function calls in a row allowed"},
     {"role": "user", "content": userResponse},
@@ -116,26 +117,12 @@ export async function getResponse(messages) {
                 required: ["tabId", "name"],
             },
         },
-        {
-            name: "tabCreate",
-            description: "Open a tab to a specific URL",
-            parameters: {
-                type: "object",
-                properties: {
-                    url: {
-                        type: "string",
-                        description: "URL to open",                       
-                    }
-                },
-                required: ["url"],
-            },
-        },
     ];
 
     const url = "https://api.openai.com/v1/chat/completions";
     const data = {
         // https://platform.openai.com/docs/models
-        "model": 'gpt-3.5-turbo-1106',
+        "model": 'gpt-3.5-turbo',
         "messages": messages,
         functions: functions,
         function_call: 'auto'

@@ -51,12 +51,12 @@ export async function tabBookmark({ tabId, name }) {
 }
 
 export async function search({ keywords, type }) {
-  let URL = 'https://search.brave.com/search?q='
+  let URL = 'https://www.google.com/search?q='
   if (type === 'places') {
     URL = 'https://www.google.com/maps/search/'
   }
   if (type === 'hotels') {
-    URL = 'https://www.airbnb.com/s/homes?query=Seattle&tab_id=home_tab&checkin=2023-12-03&checkout=2023-12-06&adults=2'
+    URL = 'https://www.airbnb.com/s/homes?query='
   }
   const searchTab = await tabCreate({url:`${URL}${encodeURIComponent(keywords)}`});
   await new Promise(resolve => setTimeout(resolve, 2000)); // You may need a more reliable way to wait for the page to load
@@ -89,8 +89,9 @@ async function extractURLsFromSearchPage(tabId) {
   const [result] = await chrome.scripting.executeScript({
     target: { tabId: tabId },
     func: () => {
-      const links = document.querySelectorAll('div[data-type="web"] > a');
-      return Array.from(links).map(link => link.href).filter(u => !u.match('brave.com')).slice(0, 4);
+      const linkHeaders = document.querySelectorAll('h3');
+      const links = Array.from(linkHeaders).filter(h => h.checkVisibility()).map(h => h.parentElement);
+      return links.map(link => link.href).slice(0, 4);
     },
   });
   return result.result;
