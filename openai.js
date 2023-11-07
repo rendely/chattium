@@ -81,11 +81,29 @@ export async function getResponse(messages) {
                 required: ["tabIdArray"],
             },
         },
+        {
+            name: "tabBookmark",
+            description: "Create a bookmark for a tab with better title. Save pages for later.",
+            parameters: {
+                type: "object",
+                properties: {
+                    tabId: {
+                        type: "integer",
+                        description: "id of tab to create bookmark from",                       
+                    },
+                    name: {
+                        type: "string",
+                        description: "Concise name for bookmark based on tab title. Don't append words like article, blog, site name"
+                    }
+                },
+                required: ["tabId", "name"],
+            },
+        },
     ];
 
     const url = "https://api.openai.com/v1/chat/completions";
     const data = {
-        "model": 'gpt-3.5-turbo',
+        "model": 'gpt-4-1106-preview',
         "messages": messages,
         functions: functions,
         function_call: 'auto'
@@ -126,6 +144,14 @@ export async function handleResponse(input, messages) {
         cf.tabGroup(functionArgs);
         messages.push({"role": "function", 
             "content": `Successfully created ${functionArgs.groupName} tab group. No more action needed.`, 
+            "name": assistant_message["function_call"]["name"]})
+        getResponse(messages);
+    }
+    if (functionName === 'tabBookmark'){
+        console.log('bookmarking');
+        cf.tabBookmark(functionArgs);
+        messages.push({"role": "function", 
+            "content": `Successfully created bookmark ${functionArgs.name}.`, 
             "name": assistant_message["function_call"]["name"]})
         getResponse(messages);
     }

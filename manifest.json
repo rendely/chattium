@@ -6,7 +6,7 @@
     "side_panel": {
       "default_path": "sidepanel.html"
     },
-    "permissions": [ "sidePanel", "tabGroups", "tabs", "scripting"],
+    "permissions": [ "sidePanel", "tabGroups", "tabs", "scripting", "bookmarks"],
     "action": {
         "default_title": "Click to open panel"
       },

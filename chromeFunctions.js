@@ -25,6 +25,15 @@ export async function tabMove({ tabId, index }) {
   chrome.tabs.move(tabId, { index: index });
 }
 
+export async function tabBookmark({ tabId, name }) {
+
+  const tab = await chrome.tabs.get(tabId);
+  console.log(tab);
+
+  await chrome.bookmarks.create({ title: name, url: tab.url });
+  chrome.tabs.remove(tab.id);
+}
+
 export async function search({ keywords, type }) {
   let URL = 'https://search.brave.com/search?q='
   if (type === 'places') {
