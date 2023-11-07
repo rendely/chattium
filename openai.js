@@ -25,14 +25,16 @@ Length: 4 miles roundtrip
 https://www.google.com/maps/dir//47.4335,-121.7675/@47.4295313,-121.8061256,12z/data=!4m4!4m3!1m0!1m1!4e1?hl=en
 
 Do not ask for follow up, just call functions and respond when done to summarize actions taken.
-The user has asked: "${prompt}"`
+The user has asked: "${prompt}"
+First plan out your steps, then call functions
+`
     return [
     {"role": "system", "content": "Respond with a message or function call. Multiple function calls in a row allowed"},
     {"role": "user", "content": userResponse},
     ]
 }
 
-export async function getResponse(messages) {
+export async function getResponse(messages, planning=false, model='gpt-3.5-turbo') {
     t.hidden = false;   
     console.log(messages);
 
@@ -79,7 +81,7 @@ export async function getResponse(messages) {
                         description: "Group id of an existing group in case it's better to combine the tabs into an existing group"
                     }
                 },
-                required: ["tabIdArray"],
+                required: ["tabIdArray", "groupName"],
             },
         },
         {
@@ -122,10 +124,10 @@ export async function getResponse(messages) {
     const url = "https://api.openai.com/v1/chat/completions";
     const data = {
         // https://platform.openai.com/docs/models
-        "model": 'gpt-3.5-turbo',
+        "model": model,
         "messages": messages,
         functions: functions,
-        function_call: 'auto'
+        function_call: planning ? 'none' : 'auto'
     }
 
     const headers = {
@@ -152,18 +154,18 @@ export async function handleResponse(input, messages) {
 
     const assistant_message =input["choices"][0]["message"];
     messages.push(assistant_message);
+
+    if (messages.length === 3){
+        messages.push( {"role": "user", "content": "Sounds great! Go ahead"});
+        getResponse(messages);
+
+    }
     
     d.innerHTML = [...messages].map(m => '<p>' + JSON.stringify(m) + '</p>').join('');
-
-    if (assistant_message.content){
-        messages.push({"role": "assistant", 
-        "content": assistant_message.content});
-    }
 
     const data = assistant_message.function_call;
     const functionName = data.name;
     const functionArgs = JSON.parse(data.arguments);
-
 
     if (functionName === 'tabGroup') {
         console.log('grouping');

@@ -51,7 +51,7 @@ export async function tabBookmark({ tabId, name }) {
 }
 
 export async function search({ keywords, type }) {
-  let URL = 'https://www.google.com/search?q='
+  let URL = 'https://search.brave.com/search?q='
   if (type === 'places') {
     URL = 'https://www.google.com/maps/search/'
   }
@@ -89,9 +89,8 @@ async function extractURLsFromSearchPage(tabId) {
   const [result] = await chrome.scripting.executeScript({
     target: { tabId: tabId },
     func: () => {
-      const linkHeaders = document.querySelectorAll('h3');
-      const links = Array.from(linkHeaders).filter(h => h.checkVisibility()).map(h => h.parentElement);
-      return links.map(link => link.href).slice(0, 4);
+      const links = document.querySelectorAll('div[data-type="web"] > a');
+      return Array.from(links).map(link => link.href).filter(u => !u.match('brave.com')).slice(0, 4);
     },
   });
   return result.result;

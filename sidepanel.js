@@ -10,6 +10,7 @@ form.addEventListener('submit', handleSubmit);
 async function handleSubmit(e){
     e.preventDefault();
     t.hidden=false;
-    const prompt = p.value;    
-    openai.getResponse(await newMessage(prompt));    
+    const prompt = p.value; 
+    const messages=await newMessage(prompt);
+    openai.getResponse(messages, true,'gpt-4');
 }
