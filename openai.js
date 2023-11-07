@@ -6,11 +6,24 @@ const t = document.querySelector('#thinking');
 
 export async function newMessage(prompt){
     const tabData = await cf.getTabData();
-    const userResponse = `Here is the data about tabs:\n${JSON.stringify(tabData)}\
-                          The user lives in Seattle and travels with their partner.
-                          The user's next vacation is Dec 22 to Jan 1
-                          The user is interested in AI, dogs, sci-fi.
-                          The user is dairy free and egg free.
+    const tabGroupData = await cf.getExistingGroups();
+    console.table(tabData);
+    console.table(tabGroupData);
+    const userResponse = `Here is the data about tabs:\n${JSON.stringify(tabData)}
+                          Here is the data about existing tab groups:\n${JSON.stringify(tabGroupData)}
+                          Here is data about the user:
+                          - The user lives in Seattle and travels with their partner.
+                          - The user's next vacation is Dec 22 to Jan 1
+                          - The user is interested in AI, dogs, sci-fi, snorkeling.
+                          - The user has dietary requirements: dairy free and egg free.
+                          - The user has recently looked at hiking: 
+                          1. Rattlesnake Ledge (Snoqualmie Pass)
+                          Start: I-90 Exit 32 (map)
+                          Difficulty: Easy
+                          Length: 4 miles roundtrip
+                          https://www.google.com/maps/dir//47.4335,-121.7675/@47.4295313,-121.8061256,12z/data=!4m4!4m3!1m0!1m1!4e1?hl=en
+
+                          Do not ask for follow up, just call functions and respond when done to summarize actions taken.
                           The user has asked: "${prompt}"`
     return [
     {"role": "system", "content": "Respond with a message or function call. Multiple function calls in a row allowed"},
@@ -45,7 +58,7 @@ export async function getResponse(messages) {
         },
         {
             name: "tabGroup",
-            description: "Create a new group of tabs",
+            description: "Create a new group of tabs or assign tabs to an existing group if a relevant one already exists",
             parameters: {
                 type: "object",
                 properties: {
@@ -58,10 +71,14 @@ export async function getResponse(messages) {
                     },
                     groupName: {
                         type: "string",
-                        description: "The name of the group, try to use an emoji and keep it concise. Don't use word 'Tabs'",
+                        description: "The name of the group, try to use an emoji and keep it concise. Don't use word 'Tabs'. Only required if creating a new group.",
                     },
+                    groupId: {
+                        type: "integer",
+                        description: "Group id of an existing group in case it's better to combine the tabs into an existing group"
+                    }
                 },
-                required: ["tabIdArray", "groupName"],
+                required: ["tabIdArray"],
             },
         },
         {
@@ -99,11 +116,26 @@ export async function getResponse(messages) {
                 required: ["tabId", "name"],
             },
         },
+        {
+            name: "tabCreate",
+            description: "Open a tab to a specific URL",
+            parameters: {
+                type: "object",
+                properties: {
+                    url: {
+                        type: "string",
+                        description: "URL to open",                       
+                    }
+                },
+                required: ["url"],
+            },
+        },
     ];
 
     const url = "https://api.openai.com/v1/chat/completions";
     const data = {
-        "model": 'gpt-4-1106-preview',
+        // https://platform.openai.com/docs/models
+        "model": 'gpt-3.5-turbo-1106',
         "messages": messages,
         functions: functions,
         function_call: 'auto'
@@ -124,10 +156,16 @@ export async function getResponse(messages) {
 }
 
 export async function handleResponse(input, messages) {
+    const d = document.querySelector('#data');
+
+    if (input['error']){
+        d.innerHTML = input.error.message;
+        return;
+    }
+
     const assistant_message =input["choices"][0]["message"];
     messages.push(assistant_message);
-
-    const d = document.querySelector('#data');
+    
     d.innerHTML = [...messages].map(m => '<p>' + JSON.stringify(m) + '</p>').join('');
 
     if (assistant_message.content){
@@ -139,17 +177,18 @@ export async function handleResponse(input, messages) {
     const functionName = data.name;
     const functionArgs = JSON.parse(data.arguments);
 
+
     if (functionName === 'tabGroup') {
         console.log('grouping');
-        cf.tabGroup(functionArgs);
+        const resultMessage = await cf.tabGroup(functionArgs);
         messages.push({"role": "function", 
-            "content": `Successfully created ${functionArgs.groupName} tab group. No more action needed.`, 
+            "content": resultMessage,
             "name": assistant_message["function_call"]["name"]})
         getResponse(messages);
     }
     if (functionName === 'tabBookmark'){
         console.log('bookmarking');
-        cf.tabBookmark(functionArgs);
+        await cf.tabBookmark(functionArgs);
         messages.push({"role": "function", 
             "content": `Successfully created bookmark ${functionArgs.name}.`, 
             "name": assistant_message["function_call"]["name"]})
@@ -157,26 +196,30 @@ export async function handleResponse(input, messages) {
     }
     if (functionName === 'tabClose') {
         console.log('closing');
-        cf.tabClose(functionArgs);
+        await cf.tabClose(functionArgs);
         messages.push({"role": "function", 
-            "content": `Successfully closed tabs. No more action needed.`, 
+            "content": `Successfully closed tabs.`, 
             "name": assistant_message["function_call"]["name"]})
         getResponse(messages);
     }
     if (functionName === 'tabCreate') {
         console.log('opening');
-        cf.tabCreate(data.url);
+        await cf.tabCreate(functionArgs);
+        messages.push({"role": "function", 
+        "content": `Successfully created tab for ${functionArgsurl}.`, 
+        "name": assistant_message["function_call"]["name"]})
+    getResponse(messages);
     }
     if (functionName === 'tabMove') {
         console.log('moving');
-        cf.tabMove(data.tabId, data.index);
+        await cf.tabMove(data.tabId, data.index);
     }
     if (functionName === 'search') {
         console.log('searching');
         const createdTabs = await cf.search(functionArgs);
         
         messages.push({"role": "function", 
-            "content": `Successfully searched. Please group the additional tabs: ${JSON.stringify(createdTabs)}`, 
+            "content": `Successfully searched. Please group the additional tabs in their own unique group: ${JSON.stringify(createdTabs)}`, 
             "name": assistant_message["function_call"]["name"]})
         getResponse(messages)
     }

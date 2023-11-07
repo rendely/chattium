@@ -5,16 +5,32 @@ export async function getTabData() {
     // d.innerHTML += t.url+'</br>';
     return {
       id: t.id,
-      title: t.title
-      // , url:t.url.slice(0,t.url.indexOf('?'))
+      host: new URL(t.url).host,
+      title: t.title,
+      groupId: (t.groupId > 0 ? t.groupId : undefined),
+      active: (t.active ? true : undefined)
     }
   });
   return tabData;
 }
 
-export async function tabGroup({ tabIdArray, groupName }) {
-  const g = await chrome.tabs.group({ tabIds: tabIdArray });
-  chrome.tabGroups.update(g, { title: groupName, collapsed: true });
+export async function tabGroup({ tabIdArray, groupName, groupId }) {
+  if (groupId >= 0){
+    const g = await chrome.tabs.group({ tabIds: tabIdArray, groupId: groupId});
+    return `Successfully added to tab group with groupId ${groupId}.` 
+  }else{
+    const g = await chrome.tabs.group({ tabIds: tabIdArray });
+    chrome.tabGroups.update(g, { title: groupName, collapsed: true });
+    return `Successfully create new tab group with group name ${groupName}.`
+  }
+}
+
+export async function getExistingGroups() {
+  const groups = await chrome.tabGroups.query({});
+  return groups.map(g => ({
+    groupTitle: g.title,
+    groupId: g.id
+  }));
 }
 
 export async function tabClose({ tabIdArray }) {
@@ -42,13 +58,13 @@ export async function search({ keywords, type }) {
   if (type === 'hotels') {
     URL = 'https://www.airbnb.com/s/homes?query=Seattle&tab_id=home_tab&checkin=2023-12-03&checkout=2023-12-06&adults=2'
   }
-  const searchTab = await tabCreate(`${URL}${encodeURIComponent(keywords)}`);
+  const searchTab = await tabCreate({url:`${URL}${encodeURIComponent(keywords)}`});
   await new Promise(resolve => setTimeout(resolve, 2000)); // You may need a more reliable way to wait for the page to load
   const urls = await extractURLsFromSearchPage(searchTab.id);
   // chrome.tabs.remove(searchTab.id);
 
   const tabIds = await Promise.all(urls.map(async (url) => {
-    const tab = await tabCreate(url);
+    const tab = await tabCreate({url});
     return tab.id;
   }));
 
@@ -58,6 +74,16 @@ export async function search({ keywords, type }) {
 
   return [searchTab, ...tabsData].map(t => ({ id: t.id }));
 }
+
+export async function tabCreate({url}) {
+  console.log(url);
+  return new Promise(resolve => {
+    chrome.tabs.create({ url: url }, function (tab) {
+      resolve(tab);
+    });
+  });
+}
+
 
 async function extractURLsFromSearchPage(tabId) {
   const [result] = await chrome.scripting.executeScript({
@@ -70,10 +96,3 @@ async function extractURLsFromSearchPage(tabId) {
   return result.result;
 }
 
-async function tabCreate(url) {
-  return new Promise(resolve => {
-    chrome.tabs.create({ url: url }, function (tab) {
-      resolve(tab);
-    });
-  });
-}
